@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import os
 import json
-from FoodSAM_tools.enhance_semantic_masks import predict_sam_label
+from FoodSAM.FoodSAM_tools.enhance_semantic_masks import predict_sam_label
 def get_IoU(bbox_red, bbox_green):
     ix_min = max(bbox_red[0], bbox_green[0]) 
     iy_min = max(bbox_red[1], bbox_green[1]) 

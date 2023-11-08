@@ -3,6 +3,7 @@ model = dict(
     type='EncoderDecoder',
     backbone=dict(
         type='VIT_MLA',
+        #with_cp=True,
         model_name='vit_base_patch16_224',
         img_size=768,
         patch_size=16,
@@ -170,6 +171,7 @@ data = dict(
             dict(
                 type='MultiScaleFlipAug',
                 img_scale=(2049, 1025),
+                #img_scale=(512,256),
                 flip=False,
                 transforms=[
                     dict(type='Resize', keep_ratio=True),
