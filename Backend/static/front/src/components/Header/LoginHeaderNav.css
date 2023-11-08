@@ -113,9 +113,12 @@ img {
 }
 
 .logout_btn {
-  /* background-color: #100f0d; */
-  color: #d0d0d0;
+  color: #d0d0d0; 
   cursor: pointer;
+  transition: color 0.3s; 
+  &:hover {
+    color: black;
+  }
 }
 
 .username {

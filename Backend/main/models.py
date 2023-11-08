@@ -31,6 +31,5 @@ class Food(models.Model):
     pro = models.IntegerField() # 단백질
     fat = models.IntegerField() # 지방
 
-
     class Meta:
         managed = True

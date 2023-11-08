@@ -211,6 +211,7 @@ def Result(request):
 
         return JsonResponse({'message': '최종 업로드 성공'}, status=200)
     return JsonResponse({'error: 잘못된 요청'}, status=400)
+
 @csrf_exempt
 def DeleteMenu(request, date, menuId):
     if not validate_token(request):
@@ -240,7 +241,6 @@ def DeleteMenu(request, date, menuId):
     else:
         return JsonResponse({'error: 잘못된 요청'}, status=400)
 
-
 # 식단 업로드 페이지 -> 날짜 선택 -> '다음 단계' -> 예측이 틀렸을 때 직접 검색
 def search(predicted):
     try:
@@ -257,6 +257,8 @@ def search(predicted):
         return data
     except Exception as e:
         return "searcherror"
+    
+    
 # Daily 식단 페이지 조회
 @csrf_exempt
 def Daily(request):
@@ -297,8 +299,6 @@ def Daily(request):
     return JsonResponse({'message': '유효하지 않은 토큰'}, status=500)
 
 
-
-
 # 식단 통계 페이지 조회
 def Statistics(request):
     if validate_token(request):
@@ -325,8 +325,6 @@ def Statistics(request):
     return JsonResponse({'message': '유효하지 않은 토큰'}, status=500)
 
 
-
-
 # 업로드한 이미지 파일 경로
 @csrf_exempt
 def handle_uploaded_file(uploaded_file):
@@ -346,6 +344,7 @@ def prediction(image_path):
     print("-------------------",image_path)
     # FastAPI 호출
     url = 'http://0.0.0.0:8001/img_object_detection_to_json'
+    # url = 'http://localhost:8001/img_object_detection_to_json'
     files = {'file': (image_path.split("/")[-1], open(image_path, 'rb'), 'image/jpeg')}
     headers = {'accept': 'application/json'}
 

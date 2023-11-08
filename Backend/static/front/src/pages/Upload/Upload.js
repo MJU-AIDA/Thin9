@@ -294,7 +294,7 @@ function Upload() {
                     </div>
                   )}
                   {!nextForm && (
-                    <button onClick={handleUpload}>다음 단계</button>
+                    <button onClick={handleUpload}>식단 업로드</button>
                   )}
                   {nextForm && (
                     <button onClick={handleResultUpload}>결과 제출하기</button>
