@@ -7,6 +7,10 @@ yolov8-fastapi/FoodSAM/ckpts/SETR_MLA/*
 !yolov8-fastapi/FoodSAM/ckpts/SETR_MLA/.gitkeep
 yolov8-fastapiFoodSAM/ckpts/*
 yolov8-fastapi/FoodSAM/iamges/*
+FoodSAM/output_panoptic/
+FoodSAM/images.zip
+FoodSAM/installation.md
+FoodSAM/ckpts/
 *.ipynb
 *.ipynb_checkpoints
 *.zip
