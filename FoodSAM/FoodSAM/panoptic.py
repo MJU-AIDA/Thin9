@@ -332,12 +332,14 @@ def panoptic(file_dir: str, output_dir: str) -> list:
     logger.info(args.img_path)
     data_path = os.path.join(save_base, 'sam_mask_label/sam_mask_label.txt')
     columns = ['id', 'category_id', 'category_name', 'category_count_ratio', 'mask_count_ratio']
-    df = pd.read_csv(data_path, names=columns, skiprows=1)
+    df = pd.read_csv(data_path, names=columns, skiprows=1, encoding='ANSI')
     category_counts = df['category_name'].value_counts()
 
     logger.info(f"\n{category_counts}")
 #     print(type(category_counts)) # pd.Series
-    s_json = category_counts.value_counts().drop('배경').to_json(orient='split', force_ascii=False)
+    if '배경' in category_counts.index:
+        category_counts = category_counts.drop('배경')
+    s_json = category_counts.to_json(orient='split', force_ascii=False)
     logger.info(s_json)
     
     return s_json
