@@ -279,8 +279,23 @@ def panoptic(output_dir: str, file: bytes = File(...)) -> str:
         input_image = Image.open(io.BytesIO(binary_image)).convert("RGB")
         return input_image
     
+    def cleanup_directory(except_file_name, directory_path):
+    """
+    Remove all files and directories in the specified directory except the specified file.
+    
+    Parameters:
+    except_file_name (str): The name of the file to keep.
+    directory_path (str): The path of the directory to clean up.
+    """
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
+        if item != except_file_name and os.path.isfile(item_path):
+            os.remove(item_path)
+        elif item != except_file_name and os.path.isdir(item_path):
+            # Recursively remove directory
+            shutil.rmtree(item_path)
+    
     image_pil = get_image_from_bytes(file)
-    # image_pil을 특정 디렉토리에 저장하고 그 디렉토리를 args.img_path로 저장
     file_dir =  os.path.join("dataset/images", '0.jpg')
     image_pil.save(file_dir)
 
