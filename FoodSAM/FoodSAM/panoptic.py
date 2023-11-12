@@ -6,6 +6,8 @@ sys.path.append('.')
 # sys.path.append('FoodSAM_tools_directory')
 import argparse
 import cv2
+from PIL import Image
+import io
 from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 from mmcv.utils import DictAction
 import argparse
@@ -17,8 +19,9 @@ import shutil, logging
 from FoodSAM.FoodSAM_tools.panoramic_segment import panoramic_segment
 from FoodSAM.FoodSAM_tools.object_detection import object_detect
 from FoodSAM.FoodSAM_tools.predict_semantic_mask import semantic_predict
+from fastapi import File
 
-def panoptic(file: bytes = File(...), output_dir: str) -> str:
+def panoptic(output_dir: str, file: bytes = File(...)) -> str:
     parser = argparse.ArgumentParser(
     description=( "Runs SAM automatic mask generation and instance segmentation on an input image or directory of images, "))
     parser.add_argument(
@@ -274,10 +277,14 @@ def panoptic(file: bytes = File(...), output_dir: str) -> str:
 
     def get_image_from_bytes(binary_image: bytes) -> Image:
         input_image = Image.open(io.BytesIO(binary_image)).convert("RGB")
-    return input_image
-
+        return input_image
     
-    command_line_args = ['--output', output_dir]
+    image_pil = get_image_from_bytes(file)
+    # image_pil을 특정 디렉토리에 저장하고 그 디렉토리를 args.img_path로 저장
+    file_dir =  os.path.join("dataset/images", '0.jpg')
+    image_pil.save(file_dir)
+
+    command_line_args = ['--img_path', file_dir, '--output', output_dir]
     # Parse the command-line arguments
     args = parser.parse_args(command_line_args)
     print(args)
@@ -290,23 +297,32 @@ def panoptic(file: bytes = File(...), output_dir: str) -> str:
     amg_kwargs = get_amg_kwargs(args)
     generator = SamAutomaticMaskGenerator(sam, output_mode=output_mode, **amg_kwargs)
     
-    #assert args.data_root or args.img_path
-    #if args.img_path:
-    #    targets = [args.img_path]
-    #else:
-    #    img_folder = os.path.join(args.data_root, args.img_dir)
-    #    targets = [
-    #        f for f in os.listdir(img_folder) if not os.path.isdir(os.path.join(img_folder, f))
-    #    ]
-    #    targets = [os.path.join(img_folder, f) for f in targets]
-    image = get_image_from_bytes(file)
-    masks = generator.generate(image)
-    base = os.path.basename(t)
-    base = os.path.splitext(base)[0]
-    save_base = os.path.join(args.output, base)
-    os.makedirs(save_base, exist_ok=True)
-    write_masks_to_folder(masks, save_base)
-    shutil.copyfile(image, os.path.join(save_base, "input.jpg"))
+    
+    
+    assert args.data_root or args.img_path
+    if args.img_path:
+        targets = [args.img_path]
+    else:
+        img_folder = os.path.join(args.data_root, args.img_dir)
+        targets = [
+            f for f in os.listdir(img_folder) if not os.path.isdir(os.path.join(img_folder, f))
+        ]
+        targets = [os.path.join(img_folder, f) for f in targets]
+
+    for t in targets:
+        logger.info(f"Processing '{t}'...")
+        image = cv2.imread(t)
+        if image is None:
+            logger.error(f"Could not load '{t}' as an image, skipping...")
+            continue
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        masks = generator.generate(image)
+        base = os.path.basename(t)
+        base = os.path.splitext(base)[0]
+        save_base = os.path.join(args.output, base)
+        os.makedirs(save_base, exist_ok=True)
+        write_masks_to_folder(masks, save_base)
+        shutil.copyfile(t, os.path.join(save_base, "input.jpg"))
     logger.info("sam done!\n")
 
     logger.info("running semantic seg model!")

@@ -24,7 +24,7 @@ def root():
     return {"Hello": "World"}
 
 @app.post("/img_seg_to_json")
-def img_seg_to_json(file: bytes = File(...), output_dir: str):
+def img_seg_to_json(output_dir: str, file: bytes = File(...)):
 
-    return panoptic(file, output_dir)
+    return panoptic(output_dir, file)
 
