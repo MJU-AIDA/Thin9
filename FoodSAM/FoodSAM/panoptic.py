@@ -21,7 +21,7 @@ from FoodSAM.FoodSAM_tools.object_detection import object_detect
 from FoodSAM.FoodSAM_tools.predict_semantic_mask import semantic_predict
 from fastapi import File
 
-def panoptic(output_dir: str, file: bytes = File(...)) -> str:
+def panoptic(file: bytes = File(...)) -> str:
     parser = argparse.ArgumentParser(
     description=( "Runs SAM automatic mask generation and instance segmentation on an input image or directory of images, "))
     parser.add_argument(
@@ -280,26 +280,29 @@ def panoptic(output_dir: str, file: bytes = File(...)) -> str:
         return input_image
     
     def cleanup_directory(except_file_name, directory_path):
-    """
-    Remove all files and directories in the specified directory except the specified file.
-    
-    Parameters:
-    except_file_name (str): The name of the file to keep.
-    directory_path (str): The path of the directory to clean up.
-    """
-    for item in os.listdir(directory_path):
-        item_path = os.path.join(directory_path, item)
-        if item != except_file_name and os.path.isfile(item_path):
-            os.remove(item_path)
-        elif item != except_file_name and os.path.isdir(item_path):
-            # Recursively remove directory
-            shutil.rmtree(item_path)
+        """
+        Remove all files and directories in the specified directory except the specified file.
+        
+        Parameters:
+        except_file_name (str): The name of the file to keep.
+        directory_path (str): The path of the directory to clean up.
+        """
+        for item in os.listdir(directory_path):
+            item_path = os.path.join(directory_path, item)
+            if item != except_file_name and os.path.isfile(item_path):
+                os.remove(item_path)
+            elif item != except_file_name and os.path.isdir(item_path):
+                # Recursively remove directory
+                shutil.rmtree(item_path)
+        return
     
     image_pil = get_image_from_bytes(file)
     file_dir =  os.path.join("dataset/images", '0.jpg')
     image_pil.save(file_dir)
+    output_dir = "output_panoptic"
 
-    command_line_args = ['--img_path', file_dir, '--output', output_dir]
+    # command_line_args = ['--img_path', file_dir, '--output', output_dir]
+    command_line_args = ['--img_path', file_dir]
     # Parse the command-line arguments
     args = parser.parse_args(command_line_args)
     print(args)
@@ -364,7 +367,7 @@ def panoptic(output_dir: str, file: bytes = File(...)) -> str:
     category_counts = df['category_name'].value_counts()
 
     logger.info(f"\n{category_counts}")
-#     print(type(category_counts)) # pd.Series
+    #print(type(category_counts)) # pd.Series
     if '배경' in category_counts.index:
         category_counts = category_counts.drop('배경')
     s_json = category_counts.to_json(orient='split', force_ascii=False)
