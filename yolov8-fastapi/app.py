@@ -12,7 +12,7 @@ from ultralytics.yolo.utils.plotting import Annotator, colors
 # Initialize the models
 model_sample_model = YOLO("./models/sample_model/v8_back_bone.pt")
 
-# use OD, SS together
+# convert Byte type image with Image object
 def get_image_from_bytes(binary_image: bytes) -> Image:
     """Convert image from bytes to PIL RGB format
     
@@ -26,7 +26,7 @@ def get_image_from_bytes(binary_image: bytes) -> Image:
     return input_image
 
 
-# use OD, SS together
+# Reverse Image into Byte type
 def get_bytes_from_image(image: Image) -> bytes:
     """
     Convert PIL image to Bytes
@@ -96,36 +96,6 @@ def get_model_predict(model: YOLO, input_image: Image, save: bool = False, image
     predictions = transform_predict_to_df(predictions, model.model.names)
     return predictions
 
-
-################################# BBOX Func #####################################
-# use for 
-def add_bboxs_on_img(image: Image, predict: pd.DataFrame()) -> Image:
-    """
-    add a bounding box on the image
-
-    Args:
-    image (Image): input image
-    predict (pd.DataFrame): predict from model
-
-    Returns:
-    Image: image whis bboxs
-    """
-    # Create an annotator object
-    annotator = Annotator(np.array(image))
-
-    # sort predict by xmin value
-    predict = predict.sort_values(by=['xmin'], ascending=True)
-
-    # iterate over the rows of predict dataframe
-    for i, row in predict.iterrows():
-        # create the text to be displayed on image
-        text = f"{row['name']}: {int(row['confidence']*100)}%"
-        # get the bounding box coordinates
-        bbox = [row['xmin'], row['ymin'], row['xmax'], row['ymax']]
-        # add the bounding box and text on the image
-        annotator.box_label(bbox, text, color=colors(row['class'], True))
-    # convert the annotated image to PIL image
-    return Image.fromarray(annotator.result())
 
 
 ################################# Models #####################################
