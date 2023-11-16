@@ -21,6 +21,92 @@ from FoodSAM.FoodSAM_tools.object_detection import object_detect
 from FoodSAM.FoodSAM_tools.predict_semantic_mask import semantic_predict
 from fastapi import File
 
+def get_amg_kwargs(args):
+    amg_kwargs = {
+        "points_per_side": args.points_per_side,
+        "points_per_batch": args.points_per_batch,
+        "pred_iou_thresh": args.pred_iou_thresh,
+        "stability_score_thresh": args.stability_score_thresh,
+        "stability_score_offset": args.stability_score_offset,
+        "box_nms_thresh": args.box_nms_thresh,
+        "crop_n_layers": args.crop_n_layers,
+        "crop_nms_thresh": args.crop_nms_thresh,
+        "crop_overlap_ratio": args.crop_overlap_ratio,
+        "crop_n_points_downscale_factor": args.crop_n_points_downscale_factor,
+        "min_mask_region_area": args.min_mask_region_area,
+    }
+    amg_kwargs = {k: v for k, v in amg_kwargs.items() if v is not None}
+    return amg_kwargs
+
+
+def write_masks_to_folder(masks: List[Dict[str, Any]], path: str) -> None:
+    header = "id,area,bbox_x0,bbox_y0,bbox_w,bbox_h,point_input_x,point_input_y,predicted_iou,stability_score,crop_box_x0,crop_box_y0,crop_box_w,crop_box_h"  # noqa
+    metadata = [header]
+    os.makedirs(os.path.join(path, "sam_mask"), exist_ok=True)
+    masks_array = []
+    for i, mask_data in enumerate(masks):
+        mask = mask_data["segmentation"]
+        masks_array.append(mask.copy())
+        filename = f"{i}.png"
+        cv2.imwrite(os.path.join(path, "sam_mask" ,filename), mask * 255)
+        mask_metadata = [
+            str(i),
+            str(mask_data["area"]),
+            *[str(x) for x in mask_data["bbox"]],
+            *[str(x) for x in mask_data["point_coords"][0]],
+            str(mask_data["predicted_iou"]),
+            str(mask_data["stability_score"]),
+            *[str(x) for x in mask_data["crop_box"]],
+        ]
+        row = ",".join(mask_metadata)
+        metadata.append(row)
+
+    masks_array = np.stack(masks_array, axis=0)
+    np.save(os.path.join(path, "sam_mask" ,"masks.npy"), masks_array)
+    metadata_path = os.path.join(path, "sam_metadata.csv")
+    with open(metadata_path, "w") as f:
+        f.write("\n".join(metadata))
+    return
+
+
+def create_logger(save_folder):
+
+    log_file = f"sam_process.log"
+    final_log_file = os.path.join(save_folder, log_file)
+
+    logging.basicConfig(
+        format=
+        '[%(asctime)s] [%(filename)s:%(lineno)d] [%(levelname)s] %(message)s',
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler(final_log_file, mode='w'),
+            logging.StreamHandler()
+        ])                        
+    logger = logging.getLogger()
+    print(f"Create Logger success in {final_log_file}")
+    return logger
+
+def get_image_from_bytes(binary_image: bytes) -> Image:
+    input_image = Image.open(io.BytesIO(binary_image)).convert("RGB")
+    return input_image
+
+def cleanup_directory(except_file_name, directory_path):
+    """
+    Remove all files and directories in the specified directory except the specified file.
+
+    Parameters:
+    except_file_name (str): The name of the file to keep.
+    directory_path (str): The path of the directory to clean up.
+    """
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
+        if item != except_file_name and os.path.isfile(item_path):
+            os.remove(item_path)
+        elif item != except_file_name and os.path.isdir(item_path):
+            # Recursively remove directory
+            shutil.rmtree(item_path)
+    return
+
 def panoptic(file: bytes = File(...)) -> str:
     parser = argparse.ArgumentParser(
     description=( "Runs SAM automatic mask generation and instance segmentation on an input image or directory of images, "))
@@ -209,95 +295,13 @@ def panoptic(file: bytes = File(...)) -> str:
         ),
     )
 
-
-    def get_amg_kwargs(args):
-        amg_kwargs = {
-            "points_per_side": args.points_per_side,
-            "points_per_batch": args.points_per_batch,
-            "pred_iou_thresh": args.pred_iou_thresh,
-            "stability_score_thresh": args.stability_score_thresh,
-            "stability_score_offset": args.stability_score_offset,
-            "box_nms_thresh": args.box_nms_thresh,
-            "crop_n_layers": args.crop_n_layers,
-            "crop_nms_thresh": args.crop_nms_thresh,
-            "crop_overlap_ratio": args.crop_overlap_ratio,
-            "crop_n_points_downscale_factor": args.crop_n_points_downscale_factor,
-            "min_mask_region_area": args.min_mask_region_area,
-        }
-        amg_kwargs = {k: v for k, v in amg_kwargs.items() if v is not None}
-        return amg_kwargs
-
-
-    def write_masks_to_folder(masks: List[Dict[str, Any]], path: str) -> None:
-        header = "id,area,bbox_x0,bbox_y0,bbox_w,bbox_h,point_input_x,point_input_y,predicted_iou,stability_score,crop_box_x0,crop_box_y0,crop_box_w,crop_box_h"  # noqa
-        metadata = [header]
-        os.makedirs(os.path.join(path, "sam_mask"), exist_ok=True)
-        masks_array = []
-        for i, mask_data in enumerate(masks):
-            mask = mask_data["segmentation"]
-            masks_array.append(mask.copy())
-            filename = f"{i}.png"
-            cv2.imwrite(os.path.join(path, "sam_mask" ,filename), mask * 255)
-            mask_metadata = [
-                str(i),
-                str(mask_data["area"]),
-                *[str(x) for x in mask_data["bbox"]],
-                *[str(x) for x in mask_data["point_coords"][0]],
-                str(mask_data["predicted_iou"]),
-                str(mask_data["stability_score"]),
-                *[str(x) for x in mask_data["crop_box"]],
-            ]
-            row = ",".join(mask_metadata)
-            metadata.append(row)
-
-        masks_array = np.stack(masks_array, axis=0)
-        np.save(os.path.join(path, "sam_mask" ,"masks.npy"), masks_array)
-        metadata_path = os.path.join(path, "sam_metadata.csv")
-        with open(metadata_path, "w") as f:
-            f.write("\n".join(metadata))
-        return
-
-
-    def create_logger(save_folder):
-
-        log_file = f"sam_process.log"
-        final_log_file = os.path.join(save_folder, log_file)
-
-        logging.basicConfig(
-            format=
-            '[%(asctime)s] [%(filename)s:%(lineno)d] [%(levelname)s] %(message)s',
-            level=logging.INFO,
-            handlers=[
-                logging.FileHandler(final_log_file, mode='w'),
-                logging.StreamHandler()
-            ])                        
-        logger = logging.getLogger()
-        print(f"Create Logger success in {final_log_file}")
-        return logger
-
-    def get_image_from_bytes(binary_image: bytes) -> Image:
-        input_image = Image.open(io.BytesIO(binary_image)).convert("RGB")
-        return input_image
-    
-    def cleanup_directory(except_file_name, directory_path):
-        """
-        Remove all files and directories in the specified directory except the specified file.
-        
-        Parameters:
-        except_file_name (str): The name of the file to keep.
-        directory_path (str): The path of the directory to clean up.
-        """
-        for item in os.listdir(directory_path):
-            item_path = os.path.join(directory_path, item)
-            if item != except_file_name and os.path.isfile(item_path):
-                os.remove(item_path)
-            elif item != except_file_name and os.path.isdir(item_path):
-                # Recursively remove directory
-                shutil.rmtree(item_path)
-        return
+    #import sys
+    #from importlib import reload
+    #reload(sys)
+    #sys.setdefaultencoding('utf-8')    
     
     image_pil = get_image_from_bytes(file)
-    file_dir =  os.path.join("dataset/images", '0.jpg')
+    file_dir =  os.path.join("dataset/images", 'input.jpg')
     image_pil.save(file_dir)
     output_dir = "output_panoptic"
 
@@ -363,7 +367,7 @@ def panoptic(file: bytes = File(...)) -> str:
     logger.info(args.img_path)
     data_path = os.path.join(save_base, 'sam_mask_label/sam_mask_label.txt')
     columns = ['id', 'category_id', 'category_name', 'category_count_ratio', 'mask_count_ratio']
-    df = pd.read_csv(data_path, names=columns, skiprows=1, encoding='ANSI')
+    df = pd.read_csv(data_path, names=columns, skiprows=1, encoding='utf-8')
     category_counts = df['category_name'].value_counts()
 
     logger.info(f"\n{category_counts}")
