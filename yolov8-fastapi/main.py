@@ -158,28 +158,6 @@ def img_object_detection_to_json(file: bytes = File(...)):
     logger.info("results: {}", result)
     return result
 
-@app.post("/img_object_detection_to_img")
-def img_object_detection_to_img(file: bytes = File(...)):
-    """
-    Object Detection from an image plot bbox on image
-
-    Args:
-        file (bytes): The image file in bytes format.
-    Returns:
-        Image: Image in bytes with bbox annotations.
-    """
-    # get image from bytes
-    input_image = get_image_from_bytes(file)
-
-    # model predict
-    predict = detect_sample_model(input_image)
-
-    # add bbox on image
-    final_image = add_bboxs_on_img(image = input_image, predict = predict)
-
-    # return image in bytes format
-    return StreamingResponse(content=get_bytes_from_image(final_image), media_type="image/jpeg")
-
 
 @app.post("/img_semantic_segmentation_to_array")
 def img_semantic_segmentation_to_array(file_dir: str, output_dir: str):
