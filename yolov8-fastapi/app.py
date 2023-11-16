@@ -3,10 +3,8 @@ import io
 import pandas as pd
 import numpy as np
 
-from typing import Optional
 
 from ultralytics import YOLO
-from ultralytics.yolo.utils.plotting import Annotator, colors
 
 
 # Initialize the models
