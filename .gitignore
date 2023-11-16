@@ -1,4 +1,6 @@
 food_meta.csv
+/.ipynb_checkpoints
+FOOD_DATA_EDA.ipynb
 /Test_img
 __pycache__/
 yolov8-fastapi/FoodSAM/output_panoptic/
@@ -14,3 +16,4 @@ FoodSAM/ckpts/
 *.ipynb
 *.ipynb_checkpoints
 *.zip
+

@@ -1,4 +1,0 @@
-django=4.2.4
-sycopg2-binary
-djangorestframework-simplejwt
-drf-yasg 
