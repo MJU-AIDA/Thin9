@@ -40,10 +40,10 @@
 root<br>
 ┣ Thin9<br>
 ┃ ┣ README.md(this)<br>
-┃ ┣ FoodSAM<br>
-┃ ┃ ┣ README.md<br>
 ┃ ┣ yolov8-fastapi<br>
 ┃ ┃ ┣ README.md<br>
+┃ ┃ ┣ FoodSAM<br>
+┃ ┃ ┃ ┣ README.md<br>
 ┣ Thin9-Back<br>
 ┃ ┣ docker-compose.yml<br>
 ┃ ┣ README.md<br>
@@ -57,5 +57,16 @@ root<br>
 - back : https://github.com/MJU-AIDA/Thin9-Front
 - models (2개의 디렉토리로 구성) : https://github.com/MJU-AIDA/Thin9
 
-## 설치 및 실행방법
+#### To understand how backend server and model api interact
+#### check below file
+
+[* views.py]
+- ImageUpload() 
+root<br>
+┣ Thin9-Back<br>
+┃ ┣ main
+┃ ┃ ┣ views.py
+
+
+## Installation
  - 설치 및 실행방법은 각 디렉토리 하위 README.md 참고해주시기 바랍니다.

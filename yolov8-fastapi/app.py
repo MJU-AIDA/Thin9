@@ -3,9 +3,9 @@ import io
 import pandas as pd
 import numpy as np
 
-
 from ultralytics import YOLO
 
+ 
 
 # Initialize the models
 model_sample_model = YOLO("./models/sample_model/v8_back_bone.pt")
