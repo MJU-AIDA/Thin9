@@ -42,8 +42,8 @@ root<br>
 ┃ ┣ README.md(this)<br>
 ┃ ┣ yolov8-fastapi<br>
 ┃ ┃ ┣ README.md<br>
-┃ ┃ ┣ FoodSAM<br>
-┃ ┃ ┃ ┣ README.md<br>
+┃ ┣ FoodSAM<br>
+┃ ┃ ┣ README.md<br>
 ┣ Thin9-Back<br>
 ┃ ┣ docker-compose.yml<br>
 ┃ ┣ README.md<br>

@@ -16,8 +16,6 @@ from io import BytesIO
 from app import get_image_from_bytes
 from app import detect_sample_model
 
-from FoodSAM.FoodSAM.panoptic import panoptic
-
 ####################################### logger #################################
 
 logger.remove()
@@ -154,8 +152,3 @@ def img_object_detection_to_json(file: bytes = File(...)):
     # Step 5: Logs and return
     logger.info("results: {}", result)
     return result
-
-
-@app.post("/img_semantic_segmentation_to_array")
-def img_semantic_segmentation_to_array(file_dir: str, output_dir: str):
-    return panoptic(file_dir, output_dir)
