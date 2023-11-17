@@ -64,7 +64,7 @@ root<br>
 - ImageUpload() 
 root<br>
 ┣ Thin9-Back<br>
-┃ ┣ main
+┃ ┣ main <br>
 ┃ ┃ ┣ views.py
 
 
